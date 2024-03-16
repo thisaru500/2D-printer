@@ -58,6 +58,9 @@ float  Zpos = Zmax;
 // Set to true to get debug output.
 boolean verbose = false;
 
+
+
+
 void setup()
  Serial.begin(  9600 );
   
@@ -85,4 +88,74 @@ void setup()
   Serial.print(" to "); 
   Serial.print(Ymax); 
   Serial.println(" mm.");  
+}
+
+
+
+
+void  loop() 
+{
+  
+  delay(100);
+  char line[ LINE_BUFFER_LENGTH ];
+  char  c;
+  int lineIndex;
+  bool lineIsComment, lineSemiColon;
+
+  lineIndex  = 0;
+  lineSemiColon = false;
+  lineIsComment = false;
+
+  while (1)  {
+
+    // Serial reception - Mostly from Grbl, added semicolon support
+    while ( Serial.available()>0 ) {
+      c = Serial.read();
+      if ((  c == '\n') || (c == '\r') ) {             // End of line reached
+        if  ( lineIndex > 0 ) {                        // Line is complete. Then execute!
+          line[ lineIndex ] = '\\0';                   // Terminate string
+          if  (verbose) { 
+            Serial.print( "Received : "); 
+            Serial.println(  line ); 
+          }
+          processIncomingLine( line, lineIndex );
+          lineIndex = 0;
+        } 
+        else { 
+          // Empty  or comment line. Skip block.
+        }
+        lineIsComment = false;
+        lineSemiColon = false;
+        Serial.println("ok");    
+      }  
+      else {
+        if ( (lineIsComment) || (lineSemiColon) ) {   
+          if ( c == ')' )  lineIsComment = false;     
+        } 
+        else {
+          if  ( c <= ' ' ) {                          
+          } 
+          else if ( c == '/' ) {                   
+          }
+          else if ( c == '('  ) {                    
+            lineIsComment = true;
+          } 
+          else if  ( c == ';' ) {
+            lineSemiColon = true;
+          } 
+          else  if ( lineIndex >= LINE_BUFFER_LENGTH-1 ) {
+            Serial.println( "ERROR  - lineBuffer overflow" );
+            lineIsComment = false;
+            lineSemiColon  = false;
+          } 
+          else if ( c >= 'a' && c <= 'z' ) {        // identyfying Upcase lowercase
+            line[ lineIndex++ ] = c-'a'+'A';
+          }  
+          else {
+            line[ lineIndex++ ] = c;
+          }
+        }
+      }
+    }
+  }
 }
