@@ -57,3 +57,32 @@ float  Zpos = Zmax;
 
 // Set to true to get debug output.
 boolean verbose = false;
+
+void setup()
+ Serial.begin(  9600 );
+  
+  penServo.attach(penServoPin);
+  penServo.write(penZUp);
+  delay(100);
+
+  // Decrease if necessary
+  myStepperX.setSpeed(600);
+
+  myStepperY.setSpeed(600);  
+  
+
+  //  Set & move to initial default position
+ 
+
+  //  Notifications!!!
+  Serial.print("X range is"); 
+  Serial.print(Xmin);  
+  Serial.print(" to "); 
+  Serial.print(Xmax); 
+  Serial.println("  mm."); 
+  Serial.print("Y range is "); 
+  Serial.print(Ymin); 
+  Serial.print(" to "); 
+  Serial.print(Ymax); 
+  Serial.println(" mm.");  
+}
