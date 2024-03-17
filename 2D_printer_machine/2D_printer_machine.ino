@@ -159,3 +159,86 @@ void  loop()
     }
   }
 }
+
+void processIncomingLine( char*  line, int charNB ) {
+  int currentIndex = 0;
+  char buffer[ 64 ];                             
+  struct point newPos;
+
+  newPos.x  = 0.0;
+  newPos.y = 0.0;
+
+  while( currentIndex < charNB ) {
+    switch  ( line[ currentIndex++ ] ) {             
+    case  'U':
+      penUp(); 
+      break;
+    case 'D':
+      penDown(); 
+      break;
+    case 'G':
+      buffer[0] = line[ currentIndex++ ];          
+    
+      buffer[1] = '\\0';
+
+      switch ( atoi( buffer ) ){                 
+      case  0:                                   
+      case 1:
+        // /!\Dirty - Suppose that X is before Y
+        char* indexX = strchr( line+currentIndex, 'X' );  
+        char* indexY = strchr( line+currentIndex, 'Y' );
+        if ( indexY <= 0 ) {
+          newPos.x = atof( indexX + 1); 
+          newPos.y  = actuatorPos.y;
+        } 
+        else if ( indexX <= 0 ) {
+          newPos.y  = atof( indexY + 1);
+          newPos.x = actuatorPos.x;
+        } 
+        else  {
+          newPos.y = atof( indexY + 1);
+          indexY = '\\0';
+          newPos.x  = atof( indexX + 1);
+        }
+        drawLine(newPos.x, newPos.y );
+        //        Serial.println("ok");
+        actuatorPos.x = newPos.x;
+        actuatorPos.y = newPos.y;
+        break;
+      }
+      break;
+    case 'M':
+      buffer[0] = line[ currentIndex++ ]; 
+      buffer[1] = line[ currentIndex++ ];
+      buffer[2] = line[ currentIndex++ ];
+      buffer[3] = '\\0';
+      switch  ( atoi( buffer ) ){
+      case 300:
+        {
+          char* indexS =  strchr( line+currentIndex, 'S' );
+          float Spos = atof( indexS + 1);
+          //         Serial.println("ok");
+          if (Spos == 30) { 
+            penDown(); 
+          }
+          if (Spos == 50) { 
+            penUp();  
+          }
+          break;
+        }
+      case 114:                               
+        Serial.print( "Absolute position : X = " );
+        Serial.print( actuatorPos.x );
+        Serial.print( "  -  Y = " );
+        Serial.println( actuatorPos.y );
+        break;
+      default:
+        Serial.print( "Command not recognized : M");
+        Serial.println(  buffer );
+      }
+    }
+  }
+
+
+
+}
