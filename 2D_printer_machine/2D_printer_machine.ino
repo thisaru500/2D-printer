@@ -242,3 +242,135 @@ void processIncomingLine( char*  line, int charNB ) {
 
 
 }
+
+void  drawLine(float x1, float y1) {
+
+  if (verbose)
+  {
+    Serial.print("fx1,  fy1: ");
+    Serial.print(x1);
+    Serial.print(",");
+    Serial.print(y1);
+    Serial.println("");
+  }  
+
+  //  Bring instructions within limits
+  if (x1 >= Xmax) { 
+    x1 = Xmax; 
+  }
+  if (x1 <= Xmin) { 
+    x1  = Xmin; 
+  }
+  if (y1 >= Ymax) { 
+    y1 = Ymax; 
+  }
+  if (y1 <=  Ymin) { 
+    y1 = Ymin; 
+  }
+
+  if (verbose)
+  {
+    Serial.print("Xpos,  Ypos: ");
+    Serial.print(Xpos);
+    Serial.print(",");
+    Serial.print(Ypos);
+    Serial.println("");
+  }
+
+  if (verbose)
+  {
+    Serial.print("x1,  y1: ");
+    Serial.print(x1);
+    Serial.print(",");
+    Serial.print(y1);
+    Serial.println("");
+  }
+
+  //  Convert coordinates to steps
+  x1  = (int)(x1*StepsPerMillimeterX);
+  y1 = (int)(y1*StepsPerMillimeterY);
+  float  x0 = Xpos;
+  float y0 = Ypos;
+
+  //  Let's find out the change for the  coordinates
+  long dx = abs(x1-x0);
+  long dy = abs(y1-y0);
+  int sx =  x0<x1 ? StepInc : -StepInc;
+  int sy = y0<y1 ? StepInc : -StepInc;
+
+  long  i;
+  long over = 0;
+
+  if (dx > dy) {
+    for (i=0; i<dx; ++i) {
+      myStepperX.onestep(sx,STEP);
+      over+=dy;
+      if (over>=dx) {
+        over-=dx;
+        myStepperY.onestep(sy,STEP);
+      }
+    delay(StepDelay);
+    }
+  }
+  else {
+    for (i=0; i<dy; ++i) {
+      myStepperY.onestep(sy,STEP);
+      over+=dx;
+      if (over>=dy) {
+        over-=dy;
+        myStepperX.onestep(sx,STEP);
+      }
+      delay(StepDelay);
+    }    
+  }
+
+  if (verbose)
+  {
+    Serial.print("dx, dy:");
+    Serial.print(dx);
+    Serial.print(",");
+    Serial.print(dy);
+    Serial.println("");
+  }
+
+  if (verbose)
+  {
+    Serial.print("Going to (");
+    Serial.print(x0);
+    Serial.print(",");
+    Serial.print(y0);
+    Serial.println(")");
+  }
+
+  //  Delay before  any next lines are submitted
+  delay(LineDelay);
+  //  Update the positions
+  Xpos = x1;
+  Ypos = y1;
+}
+
+//  Raises pen
+void penUp() { 
+  penServo.write(penZUp);  
+  delay(penDelay); 
+  Zpos=Zmax; 
+  digitalWrite(15, LOW);
+    digitalWrite(16,  HIGH);
+  if (verbose) { 
+    Serial.println("Pen up!"); 
+    
+  }  
+}
+//  Lowers pen
+void penDown() { 
+  penServo.write(penZDown); 
+  delay(penDelay); 
+  Zpos=Zmin; 
+  digitalWrite(15, HIGH);
+    digitalWrite(16,  LOW);
+  if (verbose) { 
+    Serial.println("Pen down."); 
+    
+    
+  } 
+}
